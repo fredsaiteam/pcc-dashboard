@@ -11,9 +11,15 @@
     .sub { color: #8b949e; font-size: 0.8rem; margin-bottom: 20px; }
     .card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 16px; margin-bottom: 14px; }
     .card-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #8b949e; margin-bottom: 12px; }
-    .provider-name { font-size: 1.1rem; font-weight: bold; margin-bottom: 10px; }
-    .anthropic { color: #d2a8ff; }
-    .openai    { color: #79c0ff; }
+    .notice { background: #161b22; border: 1px solid #d29922; border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; font-size: 0.82rem; color: #d29922; line-height: 1.5; }
+    .notice strong { color: #f0c040; }
+    .console-links { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+    .console-btn { display: block; text-align: center; padding: 10px; border-radius: 8px; text-decoration: none; font-size: 0.85rem; font-weight: bold; }
+    .btn-anthropic { background: #2d1f47; color: #d2a8ff; border: 1px solid #6e40c9; }
+    .btn-openai    { background: #0f2133; color: #79c0ff; border: 1px solid #1f6feb; }
+    .stat-row { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #21262d; font-size: 0.88rem; }
+    .stat-row:last-child { border: none; }
+    .stat-val { color: #58a6ff; font-weight: bold; }
     .gauge-wrap { margin: 8px 0; }
     .gauge-label { display: flex; justify-content: space-between; font-size: 0.78rem; color: #8b949e; margin-bottom: 3px; }
     .gauge-bar { height: 8px; background: #21262d; border-radius: 4px; overflow: hidden; }
@@ -21,143 +27,140 @@
     .green  { background: linear-gradient(90deg, #238636, #2ea043); }
     .yellow { background: linear-gradient(90deg, #9e6a03, #d29922); }
     .red    { background: linear-gradient(90deg, #b91c1c, #da3633); }
-    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 10px; }
-    .stat { background: #0d1117; border-radius: 6px; padding: 8px; text-align: center; }
-    .stat-val { font-size: 1rem; font-weight: bold; color: #58a6ff; }
-    .stat-lbl { font-size: 0.7rem; color: #8b949e; margin-top: 2px; }
-    .score-wrap { text-align: center; padding: 8px 0; }
-    .score { font-size: 3rem; font-weight: bold; }
-    .score-lbl { font-size: 0.78rem; color: #8b949e; margin-top: 4px; }
-    .log-item { font-size: 0.78rem; padding: 6px 0; border-bottom: 1px solid #21262d; color: #8b949e; }
+    .score { font-size: 2.8rem; font-weight: bold; text-align: center; padding: 6px 0; }
+    .score-sub { font-size: 0.75rem; color: #8b949e; text-align: center; margin-bottom: 10px; }
+    .log-item { font-size: 0.78rem; padding: 7px 0; border-bottom: 1px solid #21262d; color: #8b949e; line-height: 1.5; }
     .log-item:last-child { border: none; }
-    .log-item .model { color: #e6edf3; font-weight: bold; }
-    .log-item .cost { color: #58a6ff; }
+    .log-model { color: #e6edf3; font-weight: bold; }
+    .log-cost  { color: #58a6ff; }
+    .empty { color: #8b949e; font-size: 0.85rem; text-align: center; padding: 14px 0; }
     .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #2ea043; margin-right: 6px; animation: pulse 2s infinite; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-    .empty { color: #8b949e; font-size: 0.85rem; text-align: center; padding: 12px 0; }
-    .alert { background: #1c1c0a; border: 1px solid #d29922; border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; font-size: 0.85rem; color: #d29922; }
+    .tag { display: inline-block; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; margin-right: 4px; }
+    .tag-opus    { background: #2d1f47; color: #d2a8ff; }
+    .tag-sonnet  { background: #0f2133; color: #79c0ff; }
+    .tag-mini    { background: #0d2010; color: #56d364; }
+    .tag-other   { background: #21262d; color: #8b949e; }
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+    .stat-box { background: #0d1117; border-radius: 6px; padding: 8px; text-align: center; }
+    .stat-box-val { font-size: 1.1rem; font-weight: bold; color: #58a6ff; }
+    .stat-box-lbl { font-size: 0.7rem; color: #8b949e; margin-top: 2px; }
   </style>
 </head>
 <body>
   <h1>🖥️ Puget Command Center</h1>
-  <p class="sub"><span class="status-dot"></span>Live Dashboard · <span id="updated">Loading...</span></p>
+  <p class="sub"><span class="status-dot"></span>Agent Activity Dashboard · <span id="updated">Loading...</span></p>
 
-  <div id="alert-box"></div>
-
-  <div class="card">
-    <div class="card-title">Anthropic — Claude</div>
-    <div id="anthropic-content"><div class="empty">Loading...</div></div>
+  <div class="notice">
+    <strong>ℹ️ What this dashboard tracks:</strong><br>
+    API calls made directly by PCC's worker agents. Does <em>not</em> include OpenClaw's internal usage.<br><br>
+    <strong>For real billing totals, check here:</strong>
+    <div class="console-links" style="margin-top:8px">
+      <a class="console-btn btn-anthropic" href="https://console.anthropic.com/settings/usage" target="_blank">Anthropic Console ↗</a>
+      <a class="console-btn btn-openai"    href="https://platform.openai.com/usage"             target="_blank">OpenAI Console ↗</a>
+    </div>
   </div>
 
   <div class="card">
-    <div class="card-title">OpenAI — GPT</div>
-    <div id="openai-content"><div class="empty">Loading...</div></div>
+    <div class="card-title">⚡ Worker Efficiency</div>
+    <div id="efficiency-content"><div class="empty">No agent activity yet.</div></div>
   </div>
 
   <div class="card">
-    <div class="card-title">⚡ Efficiency Score</div>
-    <div id="efficiency-content"><div class="empty">Loading...</div></div>
+    <div class="card-title">💰 Agent Spend (this session)</div>
+    <div id="spend-content"><div class="empty">No agent activity yet.</div></div>
   </div>
 
   <div class="card">
-    <div class="card-title">📋 Recent Activity</div>
-    <div id="activity-content"><div class="empty">No activity yet.</div></div>
+    <div class="card-title">📋 Recent Agent Activity</div>
+    <div id="activity-content"><div class="empty">No activity yet. PCC will log tasks here as work is completed.</div></div>
   </div>
 
   <script>
-    const BUDGET = 50.0;
-
     function colorClass(pct) {
       return pct < 60 ? 'green' : pct < 85 ? 'yellow' : 'red';
     }
-
-    function fmt(n, decimals=4) {
-      return Number(n).toFixed(decimals);
+    function tagClass(model) {
+      if (!model) return 'tag-other';
+      if (model.includes('opus'))   return 'tag-opus';
+      if (model.includes('sonnet')) return 'tag-sonnet';
+      if (model.includes('mini'))   return 'tag-mini';
+      return 'tag-other';
     }
-
-    function providerHTML(d, cls) {
-      const cost = d.cost_usd || 0;
-      const pct = Math.min(cost / BUDGET * 100, 100);
-      const ratio = d.input_tokens > 0 ? d.output_tokens / d.input_tokens : 0;
-      const ratioPct = Math.min(ratio * 100, 100);
-      const avgCost = d.calls > 0 ? cost / d.calls : 0;
-      return `
-        <div class="gauge-wrap">
-          <div class="gauge-label"><span>Budget Used</span><span>$${fmt(cost)} / $${BUDGET}</span></div>
-          <div class="gauge-bar"><div class="gauge-fill ${colorClass(pct)}" style="width:${pct}%"></div></div>
-        </div>
-        <div class="gauge-wrap">
-          <div class="gauge-label"><span>Output/Input Ratio</span><span>${fmt(ratio,2)}</span></div>
-          <div class="gauge-bar"><div class="gauge-fill green" style="width:${ratioPct}%"></div></div>
-        </div>
-        <div class="stats">
-          <div class="stat"><div class="stat-val">${d.calls}</div><div class="stat-lbl">API Calls</div></div>
-          <div class="stat"><div class="stat-val">$${fmt(cost)}</div><div class="stat-lbl">Total Cost</div></div>
-          <div class="stat"><div class="stat-val">${Number(d.input_tokens).toLocaleString()}</div><div class="stat-lbl">Input Tokens</div></div>
-          <div class="stat"><div class="stat-val">${Number(d.output_tokens).toLocaleString()}</div><div class="stat-lbl">Output Tokens</div></div>
-        </div>`;
-    }
+    function fmt(n, d=4) { return Number(n).toFixed(d); }
 
     function render(data) {
-      document.getElementById('updated').textContent = 
-        'Updated ' + (data.last_updated ? data.last_updated.slice(0,16).replace('T',' ') : 'never');
+      document.getElementById('updated').textContent =
+        'Updated ' + (data.last_updated ? data.last_updated.slice(0,16).replace('T',' ') + ' CT' : 'never');
 
-      document.getElementById('anthropic-content').innerHTML = providerHTML(data.anthropic, 'anthropic');
-      document.getElementById('openai-content').innerHTML    = providerHTML(data.openai,    'openai');
+      const a = data.anthropic, o = data.openai;
+      const totalCalls = a.calls + o.calls;
+      const totalCost  = (a.cost_usd||0) + (o.cost_usd||0);
+      const allLogs    = [...(a.log||[]), ...(o.log||[])].sort((x,y) => y.ts.localeCompare(x.ts));
+      const opusCalls  = allLogs.filter(e => e.model && e.model.includes('opus')).length;
+      const workerCalls= totalCalls - opusCalls;
+      const score      = totalCalls > 0 ? Math.round(workerCalls / totalCalls * 100) : 100;
+      const scoreColor = score > 70 ? '#2ea043' : score > 40 ? '#d29922' : '#da3633';
 
       // Efficiency
-      const totalCalls = data.anthropic.calls + data.openai.calls;
-      const opusCalls  = (data.anthropic.log || []).filter(e => e.model && e.model.includes('opus')).length;
-      const score      = totalCalls > 0 ? Math.round(100 - (opusCalls / totalCalls * 100)) : 100;
-      const scoreColor = score > 70 ? '#2ea043' : score > 40 ? '#d29922' : '#da3633';
-      const totalCost  = (data.anthropic.cost_usd || 0) + (data.openai.cost_usd || 0);
-      document.getElementById('efficiency-content').innerHTML = `
-        <div class="score-wrap">
-          <div class="score" style="color:${scoreColor}">${score}<span style="font-size:1rem">/100</span></div>
-          <div class="score-lbl">Higher = more work done by cheap workers vs Opus</div>
-        </div>
-        <div class="stats">
-          <div class="stat"><div class="stat-val">${totalCalls}</div><div class="stat-lbl">Total Calls</div></div>
-          <div class="stat"><div class="stat-val">$${fmt(totalCost)}</div><div class="stat-lbl">Combined Cost</div></div>
-          <div class="stat"><div class="stat-val">${opusCalls}</div><div class="stat-lbl">Opus Calls</div></div>
-          <div class="stat"><div class="stat-val">${totalCalls - opusCalls}</div><div class="stat-lbl">Worker Calls</div></div>
-        </div>`;
-
-      // Activity log
-      const allLogs = [...(data.anthropic.log || []), ...(data.openai.log || [])]
-        .sort((a, b) => b.ts.localeCompare(a.ts)).slice(0, 10);
-      if (allLogs.length === 0) {
-        document.getElementById('activity-content').innerHTML = '<div class="empty">No activity yet.</div>';
+      if (totalCalls === 0) {
+        document.getElementById('efficiency-content').innerHTML = '<div class="empty">No agent activity yet.</div>';
       } else {
-        document.getElementById('activity-content').innerHTML = allLogs.map(e => `
-          <div class="log-item">
-            <span class="model">${e.model}</span> &nbsp;·&nbsp;
-            <span class="cost">$${fmt(e.cost, 5)}</span> &nbsp;·&nbsp;
-            in:${Number(e.input).toLocaleString()} out:${Number(e.output).toLocaleString()}<br>
-            <small>${e.task || 'unlabeled'} · ${e.ts.slice(0,16).replace('T',' ')}</small>
-          </div>`).join('');
+        const opusPct   = Math.min(opusCalls  / totalCalls * 100, 100);
+        const workerPct = Math.min(workerCalls / totalCalls * 100, 100);
+        document.getElementById('efficiency-content').innerHTML = `
+          <div class="score" style="color:${scoreColor}">${score}<span style="font-size:1rem; color:#8b949e">/100</span></div>
+          <div class="score-sub">Higher = more work done by cheap models. Target: above 70.</div>
+          <div class="gauge-wrap">
+            <div class="gauge-label"><span>Worker calls (cheap)</span><span>${workerCalls} / ${totalCalls}</span></div>
+            <div class="gauge-bar"><div class="gauge-fill green" style="width:${workerPct}%"></div></div>
+          </div>
+          <div class="gauge-wrap">
+            <div class="gauge-label"><span>Opus calls (expensive)</span><span>${opusCalls} / ${totalCalls}</span></div>
+            <div class="gauge-bar"><div class="gauge-fill ${colorClass(opusPct)}" style="width:${opusPct}%"></div></div>
+          </div>`;
       }
 
-      // Budget alerts
-      const alerts = [];
-      if ((data.anthropic.cost_usd / BUDGET) > 0.85) alerts.push('⚠️ Anthropic budget over 85%');
-      if ((data.openai.cost_usd / BUDGET) > 0.85)    alerts.push('⚠️ OpenAI budget over 85%');
-      document.getElementById('alert-box').innerHTML = alerts.map(a => 
-        `<div class="alert">${a}</div>`).join('');
+      // Spend
+      if (totalCalls === 0) {
+        document.getElementById('spend-content').innerHTML = '<div class="empty">No agent activity yet.</div>';
+      } else {
+        const avgCost = totalCalls > 0 ? totalCost / totalCalls : 0;
+        document.getElementById('spend-content').innerHTML = `
+          <div class="stats-grid">
+            <div class="stat-box"><div class="stat-box-val">$${fmt(totalCost)}</div><div class="stat-box-lbl">Total Agent Spend</div></div>
+            <div class="stat-box"><div class="stat-box-val">${totalCalls}</div><div class="stat-box-lbl">Total Calls</div></div>
+            <div class="stat-box"><div class="stat-box-val">$${fmt(a.cost_usd||0)}</div><div class="stat-box-lbl">Anthropic</div></div>
+            <div class="stat-box"><div class="stat-box-val">$${fmt(o.cost_usd||0)}</div><div class="stat-box-lbl">OpenAI</div></div>
+          </div>`;
+      }
+
+      // Activity log
+      if (allLogs.length === 0) {
+        document.getElementById('activity-content').innerHTML =
+          '<div class="empty">No activity yet. PCC will log tasks here as work is completed.</div>';
+      } else {
+        document.getElementById('activity-content').innerHTML = allLogs.slice(0,10).map(e => `
+          <div class="log-item">
+            <span class="tag ${tagClass(e.model)}">${e.model}</span>
+            <span class="log-cost">$${fmt(e.cost,5)}</span> &nbsp;·&nbsp;
+            in:${Number(e.input).toLocaleString()} out:${Number(e.output).toLocaleString()}<br>
+            <small>${e.task || 'unlabeled task'} · ${e.ts.slice(0,16).replace('T',' ')}</small>
+          </div>`).join('');
+      }
     }
 
     async function fetchData() {
       try {
         const r = await fetch('stats.json?t=' + Date.now());
-        const data = await r.json();
-        render(data);
+        render(await r.json());
       } catch(e) {
-        document.getElementById('updated').textContent = 'Could not load data';
+        document.getElementById('updated').textContent = 'Could not load stats.json';
       }
     }
 
     fetchData();
-    setInterval(fetchData, 60000); // refresh every 60s
+    setInterval(fetchData, 60000);
   </script>
 </body>
 </html>
