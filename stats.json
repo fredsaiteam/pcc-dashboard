@@ -1,6 +1,27 @@
 {
-  "anthropic": {"input_tokens": 0, "output_tokens": 0, "calls": 0, "cost_usd": 0.0, "log": []},
-  "openai":    {"input_tokens": 0, "output_tokens": 0, "calls": 0, "cost_usd": 0.0, "log": []},
-  "session_start": "2026-03-24T16:45:00",
-  "last_updated": null
+  "anthropic": {
+    "input_tokens": 800,
+    "output_tokens": 600,
+    "calls": 1,
+    "cost_usd": 0.0031,
+    "log": [
+      {
+        "ts": "2026-03-24T18:45:00",
+        "model": "claude-sonnet-4-6",
+        "input": 800,
+        "output": 600,
+        "cost": 0.0031,
+        "task": "daily briefing script"
+      }
+    ]
+  },
+  "openai": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "calls": 0,
+    "cost_usd": 0.0,
+    "log": []
+  },
+  "session_start": "2026-03-24T18:45:00",
+  "last_updated": "2026-03-24T18:45:00"
 }
