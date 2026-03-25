@@ -45,11 +45,25 @@
     .stat-box { background: #0d1117; border-radius: 6px; padding: 8px; text-align: center; }
     .stat-box-val { font-size: 1.1rem; font-weight: bold; color: #58a6ff; }
     .stat-box-lbl { font-size: 0.7rem; color: #8b949e; margin-top: 2px; }
+    .status-pill { display: inline-block; padding: 6px 16px; border-radius: 20px; font-size: 1rem; font-weight: bold; margin-bottom: 6px; }
+    .pill-active { background: #0d2010; color: #56d364; border: 1px solid #2ea043; }
+    .pill-idle   { background: #21262d; color: #8b949e; border: 1px solid #30363d; }
+    .last-active { font-size: 0.8rem; color: #8b949e; margin-bottom: 12px; }
+    .act-item { font-size: 0.8rem; padding: 6px 0; border-bottom: 1px solid #21262d; display: flex; gap: 8px; align-items: baseline; }
+    .act-item:last-child { border: none; }
+    .act-status { font-weight: bold; min-width: 70px; }
+    .act-task { flex: 1; color: #e6edf3; }
+    .act-time { color: #8b949e; font-size: 0.72rem; white-space: nowrap; }
   </style>
 </head>
 <body>
   <h1>🖥️ Puget Command Center</h1>
   <p class="sub"><span class="status-dot"></span>Agent Activity Dashboard · <span id="updated">Loading...</span></p>
+
+  <div class="card" id="activity-status-card">
+    <div class="card-title">🤖 PCC Agent Status</div>
+    <div id="pcc-status-content"><div class="empty">Loading...</div></div>
+  </div>
 
   <div class="notice">
     <strong>ℹ️ What this dashboard tracks:</strong><br>
@@ -161,6 +175,50 @@
 
     fetchData();
     setInterval(fetchData, 60000);
+
+    // Activity feed
+    function relTime(ts) {
+      if (!ts) return 'never';
+      const diff = Math.floor((Date.now() - new Date(ts).getTime()) / 1000);
+      if (diff < 60)  return diff + 's ago';
+      if (diff < 3600) return Math.floor(diff/60) + 'm ago';
+      if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
+      return Math.floor(diff/86400) + 'd ago';
+    }
+    function statusColor(s) {
+      if (!s) return '#8b949e';
+      if (s === 'started')   return '#79c0ff';
+      if (s === 'completed') return '#56d364';
+      if (s === 'error')     return '#da3633';
+      return '#8b949e';
+    }
+
+    async function fetchActivity() {
+      try {
+        const r = await fetch('activity.json?t=' + Date.now());
+        const d = await r.json();
+        const isActive = d.status && d.status !== 'idle';
+        const pill = isActive
+          ? '<span class="status-pill pill-active">🟢 ACTIVE</span>'
+          : '<span class="status-pill pill-idle">⚪ IDLE</span>';
+        const lastActive = '<div class="last-active">Last active: ' + relTime(d.last_active) + '</div>';
+        const events = (d.events || []).slice(0, 15);
+        const feed = events.length === 0
+          ? '<div class="empty">No activity logged yet.</div>'
+          : events.map(e => `
+            <div class="act-item">
+              <span class="act-status" style="color:${statusColor(e.status)}">${e.status}</span>
+              <span class="act-task">${e.task || '—'}</span>
+              <span class="act-time">${relTime(e.ts)}</span>
+            </div>`).join('');
+        document.getElementById('pcc-status-content').innerHTML = pill + lastActive + feed;
+      } catch(e) {
+        document.getElementById('pcc-status-content').innerHTML = '<div class="empty">Could not load activity.json</div>';
+      }
+    }
+
+    fetchActivity();
+    setInterval(fetchActivity, 30000);
   </script>
 </body>
 </html>
